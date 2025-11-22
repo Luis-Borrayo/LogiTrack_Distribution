@@ -1,7 +1,6 @@
 package com.luisborrayo.logitrack_distribution.services;
 
-import com.luisborrayo.logitrack_distribution.dtos.OrdenItemSoliDto;
-import com.luisborrayo.logitrack_distribution.models.OrdenItem;
+import com.luisborrayo.logitrack_distribution.models.OrderItem;
 import com.luisborrayo.logitrack_distribution.repositoriees.OrdenItemRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -14,23 +13,23 @@ public class OrdenItemService {
     @Inject
     private OrdenItemRepository ordenItemRepository;
 
-    public List<OrdenItem> getAll() {
+    public List<OrderItem> getAll() {
         return ordenItemRepository.getAll();
     }
 
-    public Optional<OrdenItem> findById(Long id) {
+    public Optional<OrderItem> findById(Long id) {
         return ordenItemRepository.findById(id);
     }
 
-    public List<OrdenItem> findByOrderId(Long orderId) {
+    public List<OrderItem> findByOrderId(Long orderId) {
         return ordenItemRepository.findByOrderId(orderId);
     }
 
-    public Optional<OrdenItem> save(OrdenItem orderItem) {
+    public Optional<OrderItem> save(OrderItem orderItem) {
         return ordenItemRepository.save(orderItem);
     }
 
-    public void delete(OrdenItem orderItem) {
+    public void delete(OrderItem orderItem) {
         ordenItemRepository.delete(orderItem);
     }
 

@@ -1,6 +1,6 @@
 package com.luisborrayo.logitrack_distribution.repositoriees;
 
-import com.luisborrayo.logitrack_distribution.models.Pagos;
+import com.luisborrayo.logitrack_distribution.models.Payment;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.TypedQuery;
 
@@ -9,23 +9,23 @@ import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class PagosRepository extends BaseRepository<Pagos, Long>{
+public class PagosRepository extends BaseRepository<Payment, Long>{
     @Override
-    protected Class<Pagos> entity() {
-        return Pagos.class;
+    protected Class<Payment> entity() {
+        return Payment.class;
     }
 
-    public List<Pagos> findByOrderId(Long orderId) {
+    public List<Payment> findByOrderId(Long orderId) {
         return entityManager.createQuery(
-                        "SELECT p FROM Pagos p WHERE p.order.orderId = :orderId ORDER BY p.paymentDate DESC", Pagos.class)
+                        "SELECT p FROM Payment p WHERE p.orderId.orderId = :orderId ORDER BY p.paymentDate DESC", Payment.class)
                 .setParameter("orderId", orderId)
                 .getResultList();
     }
 
-    public Optional<Pagos> findLatestByOrder(Long orderId) {
+    public Optional<Payment> findLatestByOrder(Long orderId) {
         try {
-            TypedQuery<Pagos> query = entityManager.createQuery(
-                    "SELECT p FROM Pagos p WHERE p.order.orderId = :orderId ORDER BY p.paymentDate DESC", Pagos.class);
+            TypedQuery<Payment> query = entityManager.createQuery(
+                    "SELECT p FROM Payment p WHERE p.orderId.orderId = :orderId ORDER BY p.paymentDate DESC", Payment.class);
             query.setParameter("orderId", orderId);
             query.setMaxResults(1);
             return Optional.ofNullable(query.getSingleResult());
@@ -36,7 +36,7 @@ public class PagosRepository extends BaseRepository<Pagos, Long>{
     public BigDecimal getTotalPaidByOrder(Long orderId) {
         try {
             TypedQuery<BigDecimal> query = entityManager.createQuery(
-                    "SELECT COALESCE(SUM(p.amount), 0) FROM Pagos p WHERE p.order.orderId = :orderId", BigDecimal.class);
+                    "SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.orderId.orderId = :orderId", BigDecimal.class);
             query.setParameter("orderId", orderId);
             return query.getSingleResult();
         } catch (Exception e) {

@@ -59,7 +59,7 @@ public class JpaProducer {
         props.put("hibernate.connection.autocommit", "false");
         props.put("hibernate.enable_lazy_load_no_trans", "false");
 
-        Set<Class<?>> entities = new Reflections("com.mcabrera.logitrackapi.models")
+        Set<Class<?>> entities = new Reflections("com.luisborrayo.logitrack_distribution.models")
                 .getTypesAnnotatedWith(Entity.class);
 
         System.out.println("Entidades encontradas: " + entities.size());
@@ -72,7 +72,6 @@ public class JpaProducer {
             emf = Persistence.createEntityManagerFactory("logitrackapiPU", props);
             System.out.println("=== EntityManagerFactory creado exitosamente ===");
 
-            // Probar la conexión
             EntityManager testEm = emf.createEntityManager();
             testEm.close();
             System.out.println("=== Conexión a BD verificada ===");

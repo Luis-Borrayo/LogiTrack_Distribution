@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_items")
-public class OrdenItem {
+public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_item_id")
@@ -14,11 +14,11 @@ public class OrdenItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    private Orden orden;
+    private Order orderId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Producto producto;
+    private Product productId;
 
     @Column(nullable = false)
     private Integer quantity;
@@ -29,7 +29,7 @@ public class OrdenItem {
     @Column(name = "subtotal", precision = 10, scale = 2)
     private BigDecimal subtotal;
 
-    public OrdenItem() {}
+    public OrderItem() {}
 
     public Long getOrderItemId() {
         return orderItemId;
@@ -39,22 +39,22 @@ public class OrdenItem {
         this.orderItemId = orderItemId;
     }
 
-    public Orden getOrden() {
-        return orden;
+    public Order getOrderId() {
+        return orderId;
     }
 
-    public void setOrden(Orden order) {
-        this.orden = order;
+    public void setOrderId(Order order) {
+        this.orderId = order;
     }
 
-    public Producto getProducto() {
-        return producto;
+    public Product getProductId() {
+        return productId;
     }
 
-    public void setProducto(Producto producto) {
-        this.producto = producto;
-        if (producto != null && producto.getPrice() != null) {
-            this.unitPrice = producto.getPrice();
+    public void setProductId(Product productId) {
+        this.productId = productId;
+        if (productId != null && productId.getPrice() != null) {
+            this.unitPrice = productId.getPrice();
         }
     }
 
@@ -96,8 +96,8 @@ public class OrdenItem {
     public String toString() {
         final StringBuffer sb = new StringBuffer("OrderItem{");
         sb.append("orderItemId=").append(orderItemId);
-        sb.append(", order=").append(orden != null ? orden.getOrderId() : null);
-        sb.append(", product=").append(producto != null ? producto.getProductId() : null);
+        sb.append(", order=").append(orderId != null ? orderId.getOrderId() : null);
+        sb.append(", product=").append(productId != null ? productId.getProductId() : null);
         sb.append(", quantity=").append(quantity);
         sb.append(", unitPrice=").append(unitPrice);
         sb.append(", subtotal=").append(subtotal);

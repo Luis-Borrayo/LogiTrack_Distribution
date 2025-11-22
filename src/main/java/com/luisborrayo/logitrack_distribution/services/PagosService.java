@@ -1,8 +1,8 @@
 package com.luisborrayo.logitrack_distribution.services;
 
 import com.luisborrayo.logitrack_distribution.dtos.PagosDto;
-import com.luisborrayo.logitrack_distribution.models.Orden;
-import com.luisborrayo.logitrack_distribution.models.Pagos;
+import com.luisborrayo.logitrack_distribution.models.Order;
+import com.luisborrayo.logitrack_distribution.models.Payment;
 import com.luisborrayo.logitrack_distribution.repositoriees.OrdenRepository;
 import com.luisborrayo.logitrack_distribution.repositoriees.PagosRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -24,69 +24,61 @@ public class PagosService {
     @Inject
     private OrdenService ordenService;
 
-    public List<Pagos> getAll() {
+    public List<Payment> getAll() {
         return pagosRepository.getAll();
     }
 
-    public Optional<Pagos> findById(Long id) {
+    public Optional<Payment> findById(Long id) {
         return pagosRepository.findById(id);
     }
 
-    public List<Pagos> findByOrderId(Long orderId) {
+    public List<Payment> findByOrderId(Long orderId) {
         return pagosRepository.findByOrderId(orderId);
     }
 
     @Transactional
-    public Optional<Pagos> processPayment(PagosDto paymentDto) {
-        // Validar que la orden exista
-        Optional<Orden> orderOpt = ordenRepository.findById(paymentDto.getOrderId());
+    public Optional<Payment> processPayment(PagosDto paymentDto) {
+        Optional<Order> orderOpt = ordenRepository.findById(paymentDto.getOrderId());
         if (orderOpt.isEmpty()) {
             return Optional.empty();
         }
 
-        Orden order = orderOpt.get();
+        Order order = orderOpt.get();
 
-        // Validar que el monto no sea negativo o cero
         if (paymentDto.getAmount() == null || paymentDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             return Optional.empty();
         }
-
-        // Calcular total pagado hasta ahora
         BigDecimal totalPaid = pagosRepository.getTotalPaidByOrder(order.getOrderId());
-        BigDecimal pendingAmount = order.getMontototal().subtract(totalPaid);
+        BigDecimal pendingAmount = order.getTotalAmount().subtract(totalPaid);
 
-        // Validar que el pago no exceda el monto pendiente
         if (paymentDto.getAmount().compareTo(pendingAmount) > 0) {
             return Optional.empty();
         }
 
-        // Validar método de pago
         if (paymentDto.getMethod() == null ||
                 !List.of("Cash", "Card", "Transfer").contains(paymentDto.getMethod())) {
             return Optional.empty();
         }
 
-        // Crear y guardar el pago
-        Pagos payment = new Pagos();
+        Payment payment = new Payment();
         payment.setOrder(order);
         payment.setAmount(paymentDto.getAmount());
         payment.setMethod(paymentDto.getMethod());
 
-        Optional<Pagos> savedPayment = pagosRepository.save(payment);
+        Optional<Payment> savedPayment = pagosRepository.save(payment);
 
-        // Actualizar estado de la orden si está completamente pagada
         if (savedPayment.isPresent()) {
             BigDecimal newTotalPaid = totalPaid.add(paymentDto.getAmount());
-            if (newTotalPaid.compareTo(order.getMontototal()) >= 0 &&
-                    !"Completed".equals(order.getEstado())) {
-                ordenService.updateOrderStatus(order.getOrderId(), "Completed");
+            if (newTotalPaid.compareTo(order.getTotalAmount()) >= 0 &&
+                    !"Orden Completada".equals(order.getStatus())) {
+                ordenService.updateOrderStatus(order.getOrderId(), "Orden Completada");
             }
         }
 
         return savedPayment;
     }
 
-    public PagosDto toPaymentDto(Pagos payment) {
+    public PagosDto toPaymentDto(Payment payment) {
         PagosDto dto = new PagosDto();
         dto.setPaymentId(payment.getPaymentId());
         dto.setOrderId(payment.getOrder().getOrderId());

@@ -1,6 +1,6 @@
 package com.luisborrayo.logitrack_distribution.services;
 
-import com.luisborrayo.logitrack_distribution.models.Cliente;
+import com.luisborrayo.logitrack_distribution.models.Customer;
 import com.luisborrayo.logitrack_distribution.repositoriees.ClienteRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -13,59 +13,56 @@ public class ClienteService {
     @Inject
     private ClienteRepository clienteRepository;
 
-    public List<Cliente> getAll() {
+    public List<Customer> getAll() {
         return clienteRepository.getAll();
     }
 
-    public List<Cliente> getActiveCustomers() {
+    public List<Customer> getActiveCustomers() {
         return clienteRepository.findActiveCustomers();
     }
 
-    public Optional<Cliente> findById(Long id) {
+    public Optional<Customer> findById(Long id) {
         return clienteRepository.findById(id);
     }
 
-    public Optional<Cliente> findByTaxId(String taxId) {
+    public Optional<Customer> findByTaxId(String taxId) {
         return clienteRepository.findByTaxId(taxId);
     }
 
-    public Optional<Cliente> findByEmail(String email) {
+    public Optional<Customer> findByEmail(String email) {
         return clienteRepository.findByEmail(email);
     }
 
-    public Optional<Cliente> save(Cliente customer) {
-        // Verificar si es una actualización o creación nueva
-        if (customer.getClienteId() != null) {
-            // Es una actualización - verificar duplicados en OTROS clientes
+    public Optional<Customer> save(Customer customer) {
+        if (customer.getCustomerId() != null) {
 
-            // Verificar email
-            if (customer.getCorreo() != null) {
-                Optional<Cliente> existingByEmail = clienteRepository.findByEmail(customer.getCorreo());
+            if (customer.getEmail() != null) {
+                Optional<Customer> existingByEmail = clienteRepository.findByEmail(customer.getEmail());
                 if (existingByEmail.isPresent() &&
-                        !existingByEmail.get().getClienteId().equals(customer.getClienteId())) {
+                        !existingByEmail.get().getCustomerId().equals(customer.getCustomerId())) {
                     return Optional.empty();
                 }
             }
 
             // Verificar taxId
             if (customer.getTaxId() != null) {
-                Optional<Cliente> existingByTaxId = clienteRepository.findByTaxId(customer.getTaxId());
+                Optional<Customer> existingByTaxId = clienteRepository.findByTaxId(customer.getTaxId());
                 if (existingByTaxId.isPresent() &&
-                        !existingByTaxId.get().getClienteId().equals(customer.getClienteId())) {
+                        !existingByTaxId.get().getCustomerId().equals(customer.getCustomerId())) {
                     return Optional.empty();
                 }
             }
         } else {
             // Es creación nueva - verificar si email o taxId ya existen
-            if (customer.getCorreo() != null) {
-                Optional<Cliente> existingByEmail = clienteRepository.findByEmail(customer.getCorreo());
+            if (customer.getEmail() != null) {
+                Optional<Customer> existingByEmail = clienteRepository.findByEmail(customer.getEmail());
                 if (existingByEmail.isPresent()) {
                     return Optional.empty();
                 }
             }
 
             if (customer.getTaxId() != null) {
-                Optional<Cliente> existingByTaxId = clienteRepository.findByTaxId(customer.getTaxId());
+                Optional<Customer> existingByTaxId = clienteRepository.findByTaxId(customer.getTaxId());
                 if (existingByTaxId.isPresent()) {
                     return Optional.empty();
                 }
@@ -75,30 +72,30 @@ public class ClienteService {
         return clienteRepository.save(customer);
     }
 
-    public void delete(Cliente customer) {
+    public void delete(Customer customer) {
         clienteRepository.delete(customer);
     }
 
     public void deactivateCustomer(Long customerId) {
-        Optional<Cliente> customer = findById(customerId);
+        Optional<Customer> customer = findById(customerId);
         if (customer.isPresent()) {
-            Cliente c = customer.get();
-            c.setActivo(false);
+            Customer c = customer.get();
+            c.setActive(false);
             save(c);
         }
     }
 
     public void activateCustomer(Long customerId) {
-        Optional<Cliente> customer = findById(customerId);
+        Optional<Customer> customer = findById(customerId);
         if (customer.isPresent()) {
-            Cliente c = customer.get();
-            c.setActivo(true);
+            Customer c = customer.get();
+            c.setActive(true);
             save(c);
         }
     }
 
     public boolean isCustomerActive(Long customerId) {
-        Optional<Cliente> customer = findById(customerId);
-        return customer.isPresent() && Boolean.TRUE.equals(customer.get().getActivo());
+        Optional<Customer> customer = findById(customerId);
+        return customer.isPresent() && Boolean.TRUE.equals(customer.get().getActive());
     }
 }

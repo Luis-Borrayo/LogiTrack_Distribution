@@ -4,10 +4,10 @@ import com.luisborrayo.logitrack_distribution.dtos.CreateOrdenDto;
 import com.luisborrayo.logitrack_distribution.dtos.OrdenItemDto;
 import com.luisborrayo.logitrack_distribution.dtos.OrdenItemSoliDto;
 import com.luisborrayo.logitrack_distribution.dtos.OrderResponseDto;
-import com.luisborrayo.logitrack_distribution.models.Cliente;
-import com.luisborrayo.logitrack_distribution.models.Orden;
-import com.luisborrayo.logitrack_distribution.models.OrdenItem;
-import com.luisborrayo.logitrack_distribution.models.Producto;
+import com.luisborrayo.logitrack_distribution.models.Customer;
+import com.luisborrayo.logitrack_distribution.models.Order;
+import com.luisborrayo.logitrack_distribution.models.OrderItem;
+import com.luisborrayo.logitrack_distribution.models.Product;
 import com.luisborrayo.logitrack_distribution.repositoriees.OrdenRepository;
 import com.luisborrayo.logitrack_distribution.repositoriees.PagosRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -34,94 +34,87 @@ public class OrdenService {
     @Inject
     private PagosRepository paymentRepository;
 
-    public List<Orden> getAll() {
+    public List<Order> getAll() {
         return ordenRepository.getAll();
     }
 
-    public Optional<Orden> findById(Long id) {
+    public Optional<Order> findById(Long id) {
         return ordenRepository.findById(id);
     }
 
-    public List<Orden> findByCustomerId(Long customerId) {
+    public List<Order> findByCustomerId(Long customerId) {
         return ordenRepository.findByCustomerId(customerId);
     }
 
-    public List<Orden> findByStatus(String status) {
+    public List<Order> findByStatus(String status) {
         return ordenRepository.findByStatus(status);
     }
 
-    public List<Orden> findIncompleteOrders() {
+    public List<Order> findIncompleteOrders() {
         return ordenRepository.findIncompleteOrders();
     }
 
     @Transactional
-    public Optional<Orden> createOrder(CreateOrdenDto orderDto) {
-        // Validar que el cliente exista y esté activo
-        Optional<Cliente> customer = customerService.findById(orderDto.getCustomerId());
-        if (customer.isEmpty() || !customerService.isCustomerActive(orderDto.getCustomerId())) {
+    public Optional<Order> createOrder(CreateOrdenDto orderDto) {
+        Optional<Customer> customer = customerService.findById(orderDto.getClienteId());
+        if (customer.isEmpty() || !customerService.isCustomerActive(orderDto.getClienteId())) {
             return Optional.empty();
         }
 
-        // Crear la orden
-        Orden order = new Orden();
-        order.setCliente(customer.get());
-        order.setCliente("Pending");
+        Order order = new Order();
+        order.setCustomer(customer.get());
+        order.setStatus("Pendiente");
 
-        // Procesar items
-        List<OrdenItem> items = new ArrayList<>();
+        List<OrderItem> items = new ArrayList<>();
         for (OrdenItemSoliDto itemDto : orderDto.getItems()) {
-            Optional<Producto> product = productService.findById(itemDto.getProductId());
-            if (product.isEmpty() || !product.get().getActivo()) {
-                return Optional.empty(); // Producto no encontrado o inactivo
+            Optional<Product> product = productService.findById(itemDto.getProductId());
+            if (product.isEmpty() || !product.get().getActive()) {
+                return Optional.empty();
             }
 
             if (itemDto.getQuantity() <= 0) {
-                return Optional.empty(); // Cantidad inválida
+                return Optional.empty();
             }
 
-            OrdenItem orderItem = new OrdenItem();
-            orderItem.setProducto(product.get());
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(product.get());
             orderItem.setQuantity(itemDto.getQuantity());
-            orderItem.setUnitPrice(product.get().getPrecio());
+            orderItem.setUnitPrice(product.get().getPrice());
             orderItem.calculateSubtotal();
 
             items.add(orderItem);
             order.addItem(orderItem);
         }
 
-        // Calcular total
         order.calculateTotal();
-
-        // Guardar la orden
         return ordenRepository.save(order);
     }
 
     @Transactional
-    public Optional<Orden> updateOrderStatus(Long orderId, String status) {
-        Optional<Orden> orderOpt = ordenRepository.findById(orderId);
+    public Optional<Order> updateOrderStatus(Long orderId, String status) {
+        Optional<Order> orderOpt = ordenRepository.findById(orderId);
         if (orderOpt.isEmpty()) {
             return Optional.empty();
         }
 
-        Orden order = orderOpt.get();
-        order.setEstado(status);
+        Order order = orderOpt.get();
+        order.setStatus(status);
         return ordenRepository.save(order);
     }
 
-    public OrderResponseDto toOrderResponseDto(Orden order) {
+    public OrderResponseDto toOrderResponseDto(Order order) {
         OrderResponseDto dto = new OrderResponseDto();
         dto.setOrderId(order.getOrderId());
-        dto.setCustomerId(order.getCliente().getClienteId());
-        dto.setCustomerName(order.getCliente().getNombre());
-        dto.setOrderDate(order.getFechaOrden());
-        dto.setStatus(order.getEstado());
-        dto.setTotalAmount(order.getMontototal());
+        dto.setCustomerId(order.getCustomer().getCustomerId());
+        dto.setCustomerName(order.getCustomer().getFullName());
+        dto.setOrderDate(order.getOrderDate());
+        dto.setStatus(order.getStatus());
+        dto.setTotalAmount(order.getTotalAmount());
 
-        // Convertir items a DTO
         List<OrdenItemDto> itemDtos = order.getItems().stream()
                 .map(item -> new OrdenItemDto(
-                        item.getProducto().getProductId(),
-                        item.getProducto().getNombre(),
+                        item.getProductId().getProductId(),
+                        item.getProductId().getName(),
                         item.getQuantity(),
                         item.getUnitPrice(),
                         item.getSubtotal()
@@ -129,10 +122,9 @@ public class OrdenService {
                 .collect(Collectors.toList());
         dto.setItems(itemDtos);
 
-        // Calcular montos de pago
         BigDecimal paidAmount = paymentRepository.getTotalPaidByOrder(order.getOrderId());
         dto.setPaidAmount(paidAmount);
-        dto.setPendingAmount(order.getMontototal().subtract(paidAmount));
+        dto.setPendingAmount(order.getTotalAmount().subtract(paidAmount));
 
         return dto;
     }

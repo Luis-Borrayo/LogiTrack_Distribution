@@ -1,7 +1,7 @@
 package com.luisborrayo.logitrack_distribution.controllers;
 
 import com.luisborrayo.logitrack_distribution.dtos.PagosDto;
-import com.luisborrayo.logitrack_distribution.models.Pagos;
+import com.luisborrayo.logitrack_distribution.models.Payment;
 import com.luisborrayo.logitrack_distribution.services.PagosService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -22,7 +22,7 @@ public class PagosController {
 
     @GET
     public Response getAllPayments() {
-        List<Pagos> payments = PagosService.getAll();
+        List<Payment> payments = PagosService.getAll();
         List<PagosDto> paymentDtos = payments.stream()
                 .map(PagosService::toPaymentDto)
                 .collect(Collectors.toList());
@@ -32,7 +32,7 @@ public class PagosController {
     @GET
     @Path("/{id}")
     public Response getPaymentById(@PathParam("id") Long id) {
-        Optional<Pagos> payment = PagosService.findById(id);
+        Optional<Payment> payment = PagosService.findById(id);
         if (payment.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Pago no encontrado")
@@ -45,7 +45,7 @@ public class PagosController {
     @GET
     @Path("/order/{orderId}")
     public Response getPaymentsByOrder(@PathParam("orderId") Long orderId) {
-        List<Pagos> payments = PagosService.findByOrderId(orderId);
+        List<Payment> payments = PagosService.findByOrderId(orderId);
         List<PagosDto> paymentDtos = payments.stream()
                 .map(PagosService::toPaymentDto)
                 .collect(Collectors.toList());
@@ -73,7 +73,7 @@ public class PagosController {
                     .build();
         }
 
-        Optional<Pagos> processedPayment = PagosService.processPayment(paymentDto);
+        Optional<Payment> processedPayment = PagosService.processPayment(paymentDto);
         if (processedPayment.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("No se pudo procesar el pago. Verifique la orden, el monto y el método de pago")

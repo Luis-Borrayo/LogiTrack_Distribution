@@ -1,7 +1,7 @@
 package com.luisborrayo.logitrack_distribution.controllers;
 
 import com.luisborrayo.logitrack_distribution.dtos.ProductosStatsDto;
-import com.luisborrayo.logitrack_distribution.models.Producto;
+import com.luisborrayo.logitrack_distribution.models.Product;
 import com.luisborrayo.logitrack_distribution.repositoriees.ProductoRepository;
 import com.luisborrayo.logitrack_distribution.services.ProductoService;
 import jakarta.inject.Inject;
@@ -25,21 +25,21 @@ public class ProductoController {
 
     @GET
     public Response getAllProducts() {
-        List<Producto> products = productService.getAll();
+        List<Product> products = productService.getAll();
         return Response.ok(products).build();
     }
 
     @GET
     @Path("/active")
     public Response getActiveProducts() {
-        List<Producto> products = productService.getActiveProducts();
+        List<Product> products = productService.getActiveProducts();
         return Response.ok(products).build();
     }
 
     @GET
     @Path("/category/{category}")
     public Response getProductsByCategory(@PathParam("category") String category) {
-        List<Producto> products = productService.getProductsByCategory(category);
+        List<Product> products = productService.getProductsByCategory(category);
         return Response.ok(products).build();
     }
 
@@ -87,7 +87,7 @@ public class ProductoController {
     @GET
     @Path("/{id}")
     public Response getProductById(@PathParam("id") Long id) {
-        Optional<Producto> product = productService.findById(id);
+        Optional<Product> product = productService.findById(id);
         if (product.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse("Producto no encontrado"))
@@ -97,36 +97,35 @@ public class ProductoController {
     }
 
     @POST
-    public Response createProduct(Producto product) {
-        // Validaciones
-        if (product.getNombre() == null || product.getNombre().isBlank()) {
+    public Response createProduct(Product product) {
+        if (product.getName() == null || product.getName().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse("El nombre del producto es requerido"))
                     .build();
         }
 
-        if (product.getPrecio() == null || product.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
+        if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse("El precio debe ser mayor a cero"))
                     .build();
         }
 
         // Verificar si ya existe un producto con ese nombre
-        Optional<Producto> existingProduct = productService.findByName(product.getNombre());
+        Optional<Product> existingProduct = productService.findByName(product.getName());
         if (existingProduct.isPresent()) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity(new ErrorResponse("Ya existe un producto con el nombre: " + product.getNombre()))
+                    .entity(new ErrorResponse("Ya existe un producto con el nombre: " + product.getName()))
                     .build();
         }
 
-        if (product.getActivo() == null) {
-            product.setActivo(true);
+        if (product.getActive() == null) {
+            product.setActive(true);
         }
 
         // Asegurarse de que el ID sea null para creación
         product.setProductId(null);
 
-        Optional<Producto> savedProduct = productService.save(product);
+        Optional<Product> savedProduct = productService.save(product);
         if (savedProduct.isEmpty()) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse("Error al guardar el producto"))
@@ -140,8 +139,8 @@ public class ProductoController {
 
     @PUT
     @Path("/{id}")
-    public Response updateProduct(@PathParam("id") Long id, Producto product) {
-        Optional<Producto> existingProduct = productService.findById(id);
+    public Response updateProduct(@PathParam("id") Long id, Product product) {
+        Optional<Product> existingProduct = productService.findById(id);
         if (existingProduct.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse("Producto no encontrado"))
@@ -149,26 +148,26 @@ public class ProductoController {
         }
 
         // Verificar si el nuevo nombre ya existe en otro producto
-        if (product.getNombre() != null && !product.getNombre().isBlank()) {
-            Optional<Producto> productWithSameName = productService.findByName(product.getNombre());
+        if (product.getName() != null && !product.getName().isBlank()) {
+            Optional<Product> productWithSameName = productService.findByName(product.getName());
             if (productWithSameName.isPresent() &&
                     !productWithSameName.get().getProductId().equals(id)) {
                 return Response.status(Response.Status.CONFLICT)
-                        .entity(new ErrorResponse("Ya existe otro producto con el nombre: " + product.getNombre()))
+                        .entity(new ErrorResponse("Ya existe otro producto con el nombre: " + product.getName()))
                         .build();
             }
         }
 
-        Producto productToUpdate = existingProduct.get();
-        productToUpdate.setNombre(product.getNombre());
-        productToUpdate.setDescription(product.getDescripcion());
-        productToUpdate.setPrecio(product.getPrecio());
-        productToUpdate.setCategoria(product.getCategoria());
-        if (product.getActivo() != null) {
-            productToUpdate.setActivo(product.getActivo());
+        Product productToUpdate = existingProduct.get();
+        productToUpdate.setName(product.getName());
+        productToUpdate.setDescription(product.getDescription());
+        productToUpdate.setPrice(product.getPrice());
+        productToUpdate.setCategory(product.getCategory());
+        if (product.getActive() != null) {
+            productToUpdate.setActive(product.getActive());
         }
 
-        Optional<Producto> updatedProduct = productService.save(productToUpdate);
+        Optional<Product> updatedProduct = productService.save(productToUpdate);
         if (updatedProduct.isEmpty()) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse("Error al actualizar el producto"))
@@ -181,7 +180,7 @@ public class ProductoController {
     @PATCH
     @Path("/{id}/deactivate")
     public Response deactivateProduct(@PathParam("id") Long id) {
-        Optional<Producto> product = productService.findById(id);
+        Optional<Product> product = productService.findById(id);
         if (product.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse("Producto no encontrado"))
@@ -195,7 +194,7 @@ public class ProductoController {
     @PATCH
     @Path("/{id}/activate")
     public Response activateProduct(@PathParam("id") Long id) {
-        Optional<Producto> product = productService.findById(id);
+        Optional<Product> product = productService.findById(id);
         if (product.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse("Producto no encontrado"))
@@ -209,7 +208,7 @@ public class ProductoController {
     @DELETE
     @Path("/{id}")
     public Response deleteProduct(@PathParam("id") Long id) {
-        Optional<Producto> product = productService.findById(id);
+        Optional<Product> product = productService.findById(id);
         if (product.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(new ErrorResponse("Producto no encontrado"))

@@ -1,6 +1,6 @@
 package com.luisborrayo.logitrack_distribution.controllers;
 
-import com.luisborrayo.logitrack_distribution.models.Cliente;
+import com.luisborrayo.logitrack_distribution.models.Customer;
 import com.luisborrayo.logitrack_distribution.services.ClienteService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -19,21 +19,21 @@ public class ClienteController {
 
     @GET
     public Response getAllCustomers() {
-        List<Cliente> customers = customerService.getAll();
+        List<Customer> customers = customerService.getAll();
         return Response.ok(customers).build();
     }
 
     @GET
     @Path("/active")
     public Response getActiveCustomers() {
-        List<Cliente> customers = customerService.getActiveCustomers();
+        List<Customer> customers = customerService.getActiveCustomers();
         return Response.ok(customers).build();
     }
 
     @GET
     @Path("/tax-id/{taxId}")
     public Response getCustomerByTaxId(@PathParam("taxId") String taxId) {
-        Optional<Cliente> customer = customerService.findByTaxId(taxId);
+        Optional<Customer> customer = customerService.findByTaxId(taxId);
         if (customer.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Cliente no encontrado")
@@ -45,7 +45,7 @@ public class ClienteController {
     @GET
     @Path("/{id}")
     public Response getCustomerById(@PathParam("id") Long id) {
-        Optional<Cliente> customer = customerService.findById(id);
+        Optional<Customer> customer = customerService.findById(id);
         if (customer.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Cliente no encontrado")
@@ -55,25 +55,24 @@ public class ClienteController {
     }
 
     @POST
-    public Response createCustomer(Cliente customer) {
-        // Validaciones
-        if (customer.getNombre() == null || customer.getNombre().isBlank()) {
+    public Response createCustomer(Customer customer) {
+        if (customer.getFullName() == null || customer.getFullName().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("El nombre completo es requerido")
                     .build();
         }
 
-        if (customer.getCorreo() == null || customer.getCorreo().isBlank()) {
+        if (customer.getEmail() == null || customer.getEmail().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("El email es requerido")
                     .build();
         }
 
-        if (customer.getActivo() == null) {
-            customer.setActivo(true);
+        if (customer.getActive() == null) {
+            customer.setActive(true);
         }
 
-        Optional<Cliente> savedCustomer = customerService.save(customer);
+        Optional<Customer> savedCustomer = customerService.save(customer);
         if (savedCustomer.isEmpty()) {
             return Response.status(Response.Status.CONFLICT)
                     .entity("El NIT o email ya existe")
@@ -87,22 +86,22 @@ public class ClienteController {
 
     @PUT
     @Path("/{id}")
-    public Response updateCustomer(@PathParam("id") Long id, Cliente customer) {
-        Optional<Cliente> existingCustomer = customerService.findById(id);
+    public Response updateCustomer(@PathParam("id") Long id, Customer customer) {
+        Optional<Customer> existingCustomer = customerService.findById(id);
         if (existingCustomer.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Cliente no encontrado")
                     .build();
         }
 
-        Cliente customerToUpdate = existingCustomer.get();
-        customerToUpdate.setNombre(customer.getNombre());
+        Customer customerToUpdate = existingCustomer.get();
+        customerToUpdate.setFullName(customer.getFullName());
         customerToUpdate.setTaxId(customer.getTaxId());
-        customerToUpdate.setCorreo(customer.getCorreo());
-        customerToUpdate.setDireccion(customer.getDireccion());
-        customerToUpdate.setActivo(customer.getActivo());
+        customerToUpdate.setEmail(customer.getEmail());
+        customerToUpdate.setAddress(customer.getAddress());
+        customerToUpdate.setActive(customer.getActive());
 
-        Optional<Cliente> updatedCustomer = customerService.save(customerToUpdate);
+        Optional<Customer> updatedCustomer = customerService.save(customerToUpdate);
         if (updatedCustomer.isEmpty()) {
             return Response.status(Response.Status.CONFLICT)
                     .entity("El NIT o email ya existe")
@@ -115,7 +114,7 @@ public class ClienteController {
     @PATCH
     @Path("/{id}/deactivate")
     public Response deactivateCustomer(@PathParam("id") Long id) {
-        Optional<Cliente> customer = customerService.findById(id);
+        Optional<Customer> customer = customerService.findById(id);
         if (customer.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Cliente no encontrado")
@@ -129,7 +128,7 @@ public class ClienteController {
     @PATCH
     @Path("/{id}/activate")
     public Response activateCustomer(@PathParam("id") Long id) {
-        Optional<Cliente> customer = customerService.findById(id);
+        Optional<Customer> customer = customerService.findById(id);
         if (customer.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Cliente no encontrado")
@@ -143,7 +142,7 @@ public class ClienteController {
     @DELETE
     @Path("/{id}")
     public Response deleteCustomer(@PathParam("id") Long id) {
-        Optional<Cliente> customer = customerService.findById(id);
+        Optional<Customer> customer = customerService.findById(id);
         if (customer.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Cliente no encontrado")

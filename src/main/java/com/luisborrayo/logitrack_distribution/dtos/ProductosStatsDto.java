@@ -10,7 +10,6 @@ public class ProductosStatsDto {
     private BigDecimal totalRevenue;
     private Long orderCount;
 
-    // Constructor completo
     public ProductosStatsDto(Long productId, String name, String category,
                            Long totalQuantitySold, BigDecimal totalRevenue, Long orderCount) {
         this.productId = productId;
@@ -21,10 +20,7 @@ public class ProductosStatsDto {
         this.orderCount = orderCount;
     }
 
-    // Constructor vacío
     public ProductosStatsDto() {}
-
-    // Getters y Setters
     public Long getProductId() {
         return productId;
     }

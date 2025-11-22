@@ -3,7 +3,7 @@ package com.luisborrayo.logitrack_distribution.controllers;
 
 import com.luisborrayo.logitrack_distribution.dtos.CreateOrdenDto;
 import com.luisborrayo.logitrack_distribution.dtos.OrderResponseDto;
-import com.luisborrayo.logitrack_distribution.models.Orden;
+import com.luisborrayo.logitrack_distribution.models.Order;
 import com.luisborrayo.logitrack_distribution.services.OrdenService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -24,7 +24,7 @@ public class OrdenController {
 
     @GET
     public Response getAllOrders() {
-        List<Orden> orders = ordenService.getAll();
+        List<Order> orders = ordenService.getAll();
         List<OrderResponseDto> orderDtos = orders.stream()
                 .map(ordenService::toOrderResponseDto)
                 .collect(Collectors.toList());
@@ -34,7 +34,7 @@ public class OrdenController {
     @GET
     @Path("/{id}")
     public Response getOrderById(@PathParam("id") Long id) {
-        Optional<Orden> order = ordenService.findById(id);
+        Optional<Order> order = ordenService.findById(id);
         if (order.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Orden no encontrada")
@@ -47,7 +47,7 @@ public class OrdenController {
     @GET
     @Path("/customer/{customerId}")
     public Response getOrdersByCustomer(@PathParam("customerId") Long customerId) {
-        List<Orden> orders = ordenService.findByCustomerId(customerId);
+        List<Order> orders = ordenService.findByCustomerId(customerId);
         List<OrderResponseDto> orderDtos = orders.stream()
                 .map(ordenService::toOrderResponseDto)
                 .collect(Collectors.toList());
@@ -57,7 +57,7 @@ public class OrdenController {
     @GET
     @Path("/status/{status}")
     public Response getOrdersByStatus(@PathParam("status") String status) {
-        List<Orden> orders = ordenService.findByStatus(status);
+        List<Order> orders = ordenService.findByStatus(status);
         List<OrderResponseDto> orderDtos = orders.stream()
                 .map(ordenService::toOrderResponseDto)
                 .collect(Collectors.toList());
@@ -67,7 +67,7 @@ public class OrdenController {
     @GET
     @Path("/incomplete")
     public Response getIncompleteOrders() {
-        List<Orden> orders = ordenService.findIncompleteOrders();
+        List<Order> orders = ordenService.findIncompleteOrders();
         List<OrderResponseDto> orderDtos = orders.stream()
                 .map(ordenService::toOrderResponseDto)
                 .collect(Collectors.toList());
@@ -84,7 +84,7 @@ public class OrdenController {
     @POST
     public Response createOrder(CreateOrdenDto orderDto) {
         // Validaciones básicas
-        if (orderDto.getCustomerId() == null) {
+        if (orderDto.getClienteId() == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("El ID del cliente es requerido")
                     .build();
@@ -96,7 +96,7 @@ public class OrdenController {
                     .build();
         }
 
-        Optional<Orden> createdOrder = ordenService.createOrder(orderDto);
+        Optional<Order> createdOrder = ordenService.createOrder(orderDto);
         if (createdOrder.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("No se pudo crear la orden. Verifique que el cliente esté activo y los productos existan")
@@ -118,7 +118,7 @@ public class OrdenController {
                     .build();
         }
 
-        Optional<Orden> updatedOrder = ordenService.updateOrderStatus(id, statusRequest.getStatus());
+        Optional<Order> updatedOrder = ordenService.updateOrderStatus(id, statusRequest.getStatus());
         if (updatedOrder.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("Orden no encontrada")

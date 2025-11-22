@@ -1,6 +1,6 @@
 package com.luisborrayo.logitrack_distribution.repositoriees;
 
-import com.luisborrayo.logitrack_distribution.models.OrdenItem;
+import com.luisborrayo.logitrack_distribution.models.OrderItem;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.TypedQuery;
 
@@ -8,21 +8,21 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @ApplicationScoped
-public class OrdenItemRepository extends BaseRepository<OrdenItem, Long>{
+public class OrdenItemRepository extends BaseRepository<OrderItem, Long>{
     @Override
-    protected Class<OrdenItem> entity() {
-        return OrdenItem.class;
+    protected Class<OrderItem> entity() {
+        return OrderItem.class;
     }
 
-    public List<OrdenItem> findByOrderId(Long orderId) {
+    public List<OrderItem> findByOrderId(Long orderId) {
         return entityManager.createQuery(
-                        "SELECT oi FROM OrdenItem oi WHERE oi.orden.orderId = :orderId", OrdenItem.class)
+                        "SELECT oi FROM OrderItem oi WHERE oi.orderId.orderId = :orderId", OrderItem.class)
                 .setParameter("orderId", orderId)
                 .getResultList();
     }
 
     public void deleteByOrderId(Long orderId) {
-        entityManager.createQuery("DELETE FROM OrdenItem oi WHERE oi.orden.orderId = :orderId")
+        entityManager.createQuery("DELETE FROM OrderItem oi WHERE oi.orderId.orderId = :orderId")
                 .setParameter("orderId", orderId)
                 .executeUpdate();
     }
@@ -30,7 +30,7 @@ public class OrdenItemRepository extends BaseRepository<OrdenItem, Long>{
     public BigDecimal calculateOrderTotal(Long orderId) {
         try {
             TypedQuery<BigDecimal> query = entityManager.createQuery(
-                    "SELECT SUM(oi.subtotal) FROM OrdenItem oi WHERE oi.orden.orderId = :orderId", BigDecimal.class);
+                    "SELECT SUM(oi.subtotal) FROM OrderItem oi WHERE oi.orderId.orderId = :orderId", BigDecimal.class);
             query.setParameter("orderId", orderId);
             BigDecimal result = query.getSingleResult();
             return result != null ? result : BigDecimal.ZERO;
@@ -42,7 +42,7 @@ public class OrdenItemRepository extends BaseRepository<OrdenItem, Long>{
     public boolean isValidActiveProduct(Long productId) {
         try {
             TypedQuery<Long> query = entityManager.createQuery(
-                    "SELECT COUNT(p) FROM Producto p WHERE p.productId = :productId AND p.activo = true", Long.class);
+                    "SELECT COUNT(p) FROM Product p WHERE p.productId = :productId AND p.active = true", Long.class);
             query.setParameter("productId", productId);
             return query.getSingleResult() > 0;
         } catch (Exception e) {

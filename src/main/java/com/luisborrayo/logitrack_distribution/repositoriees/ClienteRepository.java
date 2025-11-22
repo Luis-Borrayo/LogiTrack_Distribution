@@ -1,6 +1,6 @@
 package com.luisborrayo.logitrack_distribution.repositoriees;
 
-import com.luisborrayo.logitrack_distribution.models.Cliente;
+import com.luisborrayo.logitrack_distribution.models.Customer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.TypedQuery;
 
@@ -8,16 +8,16 @@ import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class ClienteRepository extends BaseRepository<Cliente, Long> {
+public class ClienteRepository extends BaseRepository<Customer, Long> {
     @Override
-    protected Class<Cliente> entity() {
-        return Cliente.class;
+    protected Class<Customer> entity() {
+        return Customer.class;
     }
 
-    public Optional<Cliente> findByTaxId(String taxId) {
+    public Optional<Customer> findByTaxId(String taxId) {
         try {
-            TypedQuery<Cliente> query = entityManager.createQuery(
-                    "SELECT c FROM Cliente c WHERE c.taxId = :taxId", Cliente.class);
+            TypedQuery<Customer> query = entityManager.createQuery(
+                    "SELECT c FROM Customer c WHERE c.taxId = :taxId", Customer.class);
             query.setParameter("taxId", taxId);
             return Optional.ofNullable(query.getSingleResult());
         } catch (Exception e) {
@@ -25,16 +25,16 @@ public class ClienteRepository extends BaseRepository<Cliente, Long> {
         }
     }
 
-    public List<Cliente> findActiveCustomers() {
+    public List<Customer> findActiveCustomers() {
         return entityManager.createQuery(
-                        "SELECT c FROM Cliente c WHERE c.activo = true ORDER BY c.Nombre", Cliente.class)
+                        "SELECT c FROM Customer c WHERE c.active = true ORDER BY c.fullName", Customer.class)
                 .getResultList();
     }
 
-    public Optional<Cliente> findByEmail(String email) {
+    public Optional<Customer> findByEmail(String email) {
         try {
-            TypedQuery<Cliente> query = entityManager.createQuery(
-                    "SELECT c FROM Cliente c WHERE c.correo = :email", Cliente.class);
+            TypedQuery<Customer> query = entityManager.createQuery(
+                    "SELECT c FROM Customer c WHERE c.email = :email", Customer.class);
             query.setParameter("email", email);
             return Optional.ofNullable(query.getSingleResult());
         } catch (Exception e) {

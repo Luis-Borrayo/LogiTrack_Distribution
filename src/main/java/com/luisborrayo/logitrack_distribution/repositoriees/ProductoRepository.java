@@ -1,7 +1,7 @@
 package com.luisborrayo.logitrack_distribution.repositoriees;
 
 import com.luisborrayo.logitrack_distribution.dtos.ProductosStatsDto;
-import com.luisborrayo.logitrack_distribution.models.Producto;
+import com.luisborrayo.logitrack_distribution.models.Product;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.TypedQuery;
 
@@ -9,29 +9,29 @@ import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class ProductoRepository extends BaseRepository<Producto, Long>{
+public class ProductoRepository extends BaseRepository<Product, Long>{
     @Override
-    protected Class<Producto> entity() {
-        return Producto.class;
+    protected Class<Product> entity() {
+        return Product.class;
     }
 
-    public List<Producto> findActiveProducts() {
+    public List<Product> findActiveProducts() {
         return entityManager.createQuery(
-                        "SELECT p FROM Producto p WHERE p.activo = true ORDER BY p.nombre", Producto.class)
+                        "SELECT p FROM Product p WHERE p.active = true ORDER BY p.name", Product.class)
                 .getResultList();
     }
 
-    public List<Producto> findByCategory(String category) {
+    public List<Product> findByCategory(String category) {
         return entityManager.createQuery(
-                        "SELECT p FROM Producto p WHERE p.categoria = :category AND p.activo = true", Producto.class)
+                        "SELECT p FROM Product p WHERE p.category = :category AND p.active = true", Product.class)
                 .setParameter("category", category)
                 .getResultList();
     }
 
-    public Optional<Producto> findByName(String name) {
+    public Optional<Product> findByName(String name) {
         try {
-            TypedQuery<Producto> query = entityManager.createQuery(
-                    "SELECT p FROM Producto p WHERE p.nombre = :name", Producto.class);
+            TypedQuery<Product> query = entityManager.createQuery(
+                    "SELECT p FROM Product p WHERE p.name = :name", Product.class);
             query.setParameter("name", name);
             return Optional.ofNullable(query.getSingleResult());
         } catch (Exception e) {
@@ -42,16 +42,16 @@ public class ProductoRepository extends BaseRepository<Producto, Long>{
     public List<ProductosStatsDto> findTopSellingProducts(int limit) {
         String jpql = "SELECT new com.luisborrayo.logitrack_distribution.dtos.ProductosStatsDto(" +
                 "p.productId, " +
-                "p.nombre, " +
-                "p.categoria, " +
+                "p.name, " +
+                "p.category, " +
                 "SUM(oi.quantity), " +
                 "SUM(oi.subtotal), " +
                 "COUNT(DISTINCT o.orderId)) " +
-                "FROM OrdenItem oi " +
-                "JOIN oi.producto p " +
-                "JOIN oi.orden o " +
-                "WHERE o.estado <> 'Cancelled' " +
-                "GROUP BY p.productId, p.nombre, p.categoria " +
+                "FROM OrderItem oi " +
+                "JOIN oi.productId p " +
+                "JOIN oi.orderId o " +
+                "WHERE o.status <> 'Cancelled' " +
+                "GROUP BY p.productId, p.name, p.category " +
                 "ORDER BY SUM(oi.quantity) DESC";
 
         TypedQuery<ProductosStatsDto> query = entityManager.createQuery(jpql, ProductosStatsDto.class);
@@ -65,16 +65,16 @@ public class ProductoRepository extends BaseRepository<Producto, Long>{
         try {
             String jpql = "SELECT new com.luisborrayo.logitrack_distribution.dtos.ProductosStatsDto(" +
                     "p.productId, " +
-                    "p.nombre, " +
-                    "p.categoria, " +
+                    "p.name, " +
+                    "p.category, " +
                     "COALESCE(SUM(oi.quantity), 0), " +
                     "COALESCE(SUM(oi.subtotal), 0), " +
                     "COUNT(DISTINCT o.orderId)) " +
-                    "FROM Producto p " +
-                    "LEFT JOIN OrdenItem oi ON oi.producto.productId = p.productId " +
-                    "LEFT JOIN Orden o ON oi.orden.orderId = o.orderId AND o.estado <> 'Cancelled' " +
+                    "FROM Product p " +
+                    "LEFT JOIN OrderItem oi ON oi.productId.productId = p.productId " +
+                    "LEFT JOIN Order o ON oi.orderId.orderId = o.orderId AND o.status <> 'Cancelled' " +
                     "WHERE p.productId = :productId " +
-                    "GROUP BY p.productId, p.nombre, p.categoria";
+                    "GROUP BY p.productId, p.name, p.category";
 
             TypedQuery<ProductosStatsDto> query = entityManager.createQuery(jpql, ProductosStatsDto.class);
             query.setParameter("productId", productId);
@@ -88,16 +88,16 @@ public class ProductoRepository extends BaseRepository<Producto, Long>{
     public List<ProductosStatsDto> findTopSellingProductsByCategory(String category, int limit) {
         String jpql = "SELECT new com.luisborrayo.logitrack_distribution.dtos.ProductosStatsDto(" +
                 "p.productId, " +
-                "p.nombre, " +
-                "p.categoria, " +
+                "p.name, " +
+                "p.category, " +
                 "SUM(oi.quantity), " +
                 "SUM(oi.subtotal), " +
                 "COUNT(DISTINCT o.orderId)) " +
-                "FROM OrdenItem oi " +
-                "JOIN oi.producto p " +
-                "JOIN oi.orden o " +
-                "WHERE o.estado <> 'Cancelled' AND p.categoria = :category " +
-                "GROUP BY p.productId, p.nombre, p.categoria " +
+                "FROM OrderItem oi " +
+                "JOIN oi.productId p " +
+                "JOIN oi.orderId o " +
+                "WHERE o.status <> 'Cancelled' AND p.category = :category " +
+                "GROUP BY p.productId, p.name, p.category " +
                 "ORDER BY SUM(oi.quantity) DESC";
 
         TypedQuery<ProductosStatsDto> query = entityManager.createQuery(jpql, ProductosStatsDto.class);

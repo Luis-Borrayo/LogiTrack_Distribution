@@ -6,8 +6,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "pagos")
-public class Pagos {
+@Table(name = "payments")
+public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_id")
@@ -15,7 +15,7 @@ public class Pagos {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    private Orden order;
+    private Order orderId;
 
     @Column(name = "payment_date", nullable = false)
     private LocalDateTime paymentDate = LocalDateTime.now();
@@ -26,7 +26,7 @@ public class Pagos {
     @Column(nullable = false)
     private String method;
 
-    public Pagos() {}
+    public Payment() {}
 
     public Long getPaymentId() {
         return paymentId;
@@ -36,12 +36,12 @@ public class Pagos {
         this.paymentId = paymentId;
     }
 
-    public Orden getOrder() {
-        return order;
+    public Order getOrder() {
+        return orderId;
     }
 
-    public void setOrder(Orden order) {
-        this.order = order;
+    public void setOrder(Order order) {
+        this.orderId = order;
     }
 
     public LocalDateTime getPaymentDate() {
@@ -72,7 +72,7 @@ public class Pagos {
     public String toString() {
         final StringBuffer sb = new StringBuffer("Payment{");
         sb.append("paymentId=").append(paymentId);
-        sb.append(", order=").append(order != null ? order.getOrderId() : null);
+        sb.append(", order=").append(orderId != null ? orderId.getOrderId() : null);
         sb.append(", paymentDate=").append(paymentDate);
         sb.append(", amount=").append(amount);
         sb.append(", method='").append(method).append('\'');
